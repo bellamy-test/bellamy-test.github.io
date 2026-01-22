@@ -1,5 +1,12 @@
 ---
-layout: home
+layout: default
 ---
 
-This is a test.
+# Bellamy Food Blog 🍔
+
+Welcome to my food blog.
+
+## Posts
+{% for post in site.posts %}
+- [{{ post.title }}]({{ post.url }})
+{% endfor %}
