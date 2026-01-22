@@ -1,1 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bellamy Food Blog</title>
+  <meta name="description" content="A clean, professional food critic blog." />
+  <link rel="stylesheet" href="style.css" />
+</head>
 
+<body>
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <a class="brand" href="#/">
+        <span class="brand__mark" aria-hidden="true">🍽️</span>
+        <span class="brand__text">
+          <span class="brand__name">Bellamy Food Blog</span>
+          <span class="brand__tag">Food critic notes, plated clean.</span>
+        </span>
+      </a>
+
+      <nav class="nav">
+        <a class="nav__link" href="#/">Home</a>
+        <a class="nav__link" href="#/about">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero__text">
+        <h1>Restaurant reviews with receipts.</h1>
+        <p>Clean write-ups, crisp photography, and a simple rating system that makes sense.</p>
+      </div>
+
+      <div class="hero__chips" aria-label="Site categories">
+        <button class="chip is-active" data-filter="all">All</button>
+        <button class="chip" data-filter="review">Reviews</button>
+        <button class="chip" data-filter="guide">Guides</button>
+        <button class="chip" data-filter="notes">Notes</button>
+      </div>
+    </section>
+
+    <section class="grid">
+      <aside class="sidebar">
+        <div class="card search">
+          <label class="label" for="q">Search</label>
+          <input id="q" class="input" placeholder="Try: ramen, pizza, Phoenix..." autocomplete="off" />
+          <div class="hint">Tip: click a post to open the reader.</div>
+        </div>
+
+        <div class="card stats">
+          <div class="stat">
+            <div class="stat__num" id="countPosts">0</div>
+            <div class="stat__label">posts</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num" id="countPlaces">0</div>
+            <div class="stat__label">places</div>
+          </div>
+          <div class="stat">
+            <div class="stat__num" id="countCities">0</div>
+            <div class="stat__label">cities</div>
+          </div>
+        </div>
+
+        <div class="card mini">
+          <div class="mini__title">Quick format</div>
+          <div class="mini__text">Write posts as HTML in <code>/posts</code>. Add images with <code>&lt;img&gt;</code>. Done.</div>
+        </div>
+      </aside>
+
+      <section class="content">
+        <div id="list" class="list" aria-label="Post list"></div>
+
+        <article id="reader" class="reader" aria-label="Post reader" hidden>
+          <div class="reader__bar">
+            <button id="backBtn" class="btn" type="button">← Back</button>
+            <div class="reader__meta" id="readerMeta"></div>
+          </div>
+          <div id="readerBody" class="reader__body"></div>
+        </article>
+
+        <section id="about" class="about" hidden>
+          <div class="card about__card">
+            <h2>About</h2>
+            <p>This site is static: HTML, CSS, and JS only. Posts live in the <code>posts/</code> folder.</p>
+            <p>Click “Home” to see the list, then click a post to open it here.</p>
+          </div>
+        </section>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <span>© <span id="year"></span> Bellamy Food Blog</span>
+      <span class="dot">•</span>
+      <a class="footer__link" href="#/">Home</a>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
