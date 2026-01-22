@@ -1,134 +1,184 @@
-:root{
-  --bg: #0b0c10;
-  --bg2: #07080c;
-  --panel: rgba(255,255,255,.06);
-  --panel2: rgba(255,255,255,.10);
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.68);
-  --line: rgba(255,255,255,.14);
-  --shadow: 0 20px 60px rgba(0,0,0,.45);
-  --radius: 18px;
-  --max: 1100px;
+const POSTS = [
+  {
+    id: "sample-post",
+    title: "A ramen bowl worth traveling for",
+    date: "2026-01-21",
+    city: "Phoenix, AZ",
+    place: "Example Ramen",
+    rating: 8.7,
+    type: "review",
+    thumb: "posts/sample-ramen.jpg",
+    file: "posts/sample-post.html"
+  },
+  {
+    id: "sample-post-2",
+    title: "How to spot a great burger in 60 seconds",
+    date: "2026-01-22",
+    city: "Mesa, AZ",
+    place: "Multiple",
+    rating: 0,
+    type: "guide",
+    thumb: "posts/sample-burger.jpg",
+    file: "posts/sample-post-2.html"
+  }
+];
+
+const elList = document.getElementById("list");
+const elReader = document.getElementById("reader");
+const elReaderBody = document.getElementById("readerBody");
+const elReaderMeta = document.getElementById("readerMeta");
+const elAbout = document.getElementById("about");
+const q = document.getElementById("q");
+const backBtn = document.getElementById("backBtn");
+const chips = [...document.querySelectorAll(".chip")];
+
+const themeBtn = document.getElementById("themeToggle");
+const themeIcon = themeBtn.querySelector(".iconbtn__icon");
+const themeText = themeBtn.querySelector(".iconbtn__text");
+
+let state = { filter: "all", query: "" };
+
+document.getElementById("year").textContent = new Date().getFullYear();
+
+function uniqCount(key){
+  return new Set(POSTS.map(p => (p[key] || "").trim()).filter(Boolean)).size;
 }
 
-body.light{
-  --bg: #f7f7fb;
-  --bg2: #ffffff;
-  --panel: rgba(15, 23, 42, .05);
-  --panel2: rgba(15, 23, 42, .08);
-  --text: rgba(15, 23, 42, .92);
-  --muted: rgba(15, 23, 42, .62);
-  --line: rgba(15, 23, 42, .14);
-  --shadow: 0 18px 45px rgba(15,23,42,.12);
+document.getElementById("countPosts").textContent = POSTS.length;
+document.getElementById("countPlaces").textContent = uniqCount("place");
+document.getElementById("countCities").textContent = uniqCount("city");
+
+function fmtDate(iso){
+  const d = new Date(iso + "T00:00:00");
+  return d.toLocaleDateString(undefined, { year:"numeric", month:"short", day:"numeric" });
 }
 
-*{box-sizing:border-box}
-html,body{height:100%}
-body{
-  margin:0;
-  color:var(--text);
-  background:
-    radial-gradient(1200px 600px at 20% 0%, rgba(255,214,102,.10), transparent 60%),
-    radial-gradient(900px 500px at 90% 10%, rgba(99,179,237,.10), transparent 55%),
-    radial-gradient(800px 600px at 40% 80%, rgba(244,114,182,.09), transparent 60%),
-    linear-gradient(to bottom, var(--bg), var(--bg2));
-  font: 16px/1.6 ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  transition: background .25s ease, color .25s ease;
+function setTheme(mode){
+  if (mode === "light") document.body.classList.add("light");
+  else document.body.classList.remove("light");
+
+  const isLight = document.body.classList.contains("light");
+  themeIcon.textContent = isLight ? "🌙" : "☀️";
+  themeText.textContent = isLight ? "Dark" : "Light";
 }
 
-.wrap{max-width:var(--max); margin:0 auto; padding:0 18px}
-
-.topbar{
-  position:sticky; top:0; z-index:30;
-  backdrop-filter: blur(16px);
-  background: linear-gradient(to bottom, rgba(11,12,16,.78), rgba(11,12,16,.35));
-  border-bottom:1px solid var(--line);
-}
-body.light .topbar{
-  background: linear-gradient(to bottom, rgba(255,255,255,.78), rgba(255,255,255,.55));
+function initTheme(){
+  const saved = localStorage.getItem("theme");
+  if (saved === "light" || saved === "dark"){
+    setTheme(saved);
+    return;
+  }
+  const prefersLight = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches;
+  setTheme(prefersLight ? "light" : "dark");
 }
 
-.topbar__inner{
-  display:flex; align-items:center; justify-content:space-between;
-  padding:14px 0;
-}
-.topbar__right{display:flex; align-items:center; gap:10px}
+themeBtn.addEventListener("click", () => {
+  const isLight = document.body.classList.contains("light");
+  const next = isLight ? "dark" : "light";
+  localStorage.setItem("theme", next);
+  setTheme(next);
+});
 
-.brand{display:flex; gap:12px; align-items:center; text-decoration:none; color:inherit}
-.brand__mark{font-size:22px}
-.brand__name{display:block; font-weight:800; letter-spacing:.2px}
-.brand__tag{display:block; font-size:12px; color:var(--muted); margin-top:2px}
+function renderList(){
+  const filtered = POSTS
+    .filter(p => state.filter === "all" ? true : p.type === state.filter)
+    .filter(p => {
+      const hay = `${p.title} ${p.city} ${p.place} ${p.type}`.toLowerCase();
+      return hay.includes(state.query.toLowerCase());
+    })
+    .sort((a,b) => (a.date < b.date ? 1 : -1));
 
-.nav{display:flex; gap:10px}
-.nav__link{
-  color:var(--muted);
-  text-decoration:none;
-  padding:8px 10px;
-  border-radius:999px;
-  transition: transform .18s ease, background .18s ease, color .18s ease;
-}
-.nav__link:hover{color:var(--text); background:var(--panel); transform: translateY(-1px)}
+  elList.innerHTML = filtered.map(p => {
+    const rating = p.rating ? `<span class="badge">Score: ${p.rating.toFixed(1)}</span>` : "";
+    const thumb = p.thumb ? `<div class="post__thumb"><img src="${p.thumb}" alt=""></div>` : `<div class="post__thumb"></div>`;
+    return `
+      <article class="post" data-id="${p.id}">
+        ${thumb}
+        <h3 class="post__title">${p.title}</h3>
+        <div class="post__meta">
+          <span>${fmtDate(p.date)}</span>
+          <span class="badge">${p.city}</span>
+          <span class="badge">${p.type}</span>
+          ${rating}
+        </div>
+      </article>
+    `;
+  }).join("");
 
-.iconbtn{
-  display:flex; align-items:center; gap:8px;
-  border:1px solid var(--line);
-  background: var(--panel);
-  color:var(--text);
-  padding:8px 10px;
-  border-radius: 999px;
-  cursor:pointer;
-  transition: transform .18s ease, background .18s ease;
-}
-.iconbtn:hover{transform: translateY(-1px); background: var(--panel2)}
-.iconbtn__icon{font-size:16px}
-.iconbtn__text{font-size:13px; font-weight:650}
-
-.hero{padding:26px 0 10px}
-.hero h1{margin:0; font-size: clamp(26px, 3.2vw, 42px); line-height:1.12}
-.hero p{margin:10px 0 0; color:var(--muted); max-width: 65ch}
-
-.hero__chips{display:flex; gap:10px; flex-wrap:wrap; margin-top:16px}
-.chip{
-  border:1px solid var(--line);
-  background: transparent;
-  color:var(--muted);
-  padding:8px 12px;
-  border-radius:999px;
-  cursor:pointer;
-  transition: transform .18s ease, background .18s ease, color .18s ease;
-}
-.chip:hover{transform: translateY(-1px); background:var(--panel)}
-.chip.is-active{color:var(--text); background:var(--panel2)}
-
-.grid{
-  display:grid;
-  grid-template-columns: 320px 1fr;
-  gap:18px;
-  padding:14px 0 34px;
+  [...document.querySelectorAll(".post")].forEach(card => {
+    card.addEventListener("click", () => {
+      const id = card.getAttribute("data-id");
+      location.hash = `#/post/${encodeURIComponent(id)}`;
+    });
+  });
 }
 
-.card{
-  background: var(--panel);
-  border:1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding:16px;
-  transition: background .25s ease, border-color .25s ease;
+async function openPost(id){
+  const post = POSTS.find(p => p.id === id);
+  if (!post) return;
+
+  elAbout.hidden = true;
+  elList.hidden = true;
+  elReader.hidden = false;
+
+  elReaderMeta.textContent = `${fmtDate(post.date)} • ${post.city} • ${post.place}${post.rating ? " • Score " + post.rating.toFixed(1) : ""}`;
+  elReaderBody.innerHTML = `<p>Loading…</p>`;
+
+  const res = await fetch(post.file, { cache: "no-store" });
+  const html = await res.text();
+  elReaderBody.innerHTML = html;
+
+  requestAnimationFrame(() => {
+    elReader.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
 }
 
-.label{display:block; font-size:12px; color:var(--muted); margin-bottom:8px}
-.input{
-  width:100%;
-  padding:12px 12px;
-  border-radius: 14px;
-  border:1px solid var(--line);
-  background: rgba(0,0,0,.14);
-  color:var(--text);
-  outline:none;
-  transition: background .25s ease, border-color .25s ease;
+function showHome(){
+  elReader.hidden = true;
+  elAbout.hidden = true;
+  elList.hidden = false;
 }
-body.light .input{background: rgba(255,255,255,.70)}
-.input:focus{border-color: rgba(255,255,255,.28)}
-.hint{margin-top:10px; color:var(--muted); font-size:12px}
 
-.stats{display:grid; gr
+function showAbout(){
+  elReader.hidden = true;
+  elList.hidden = true;
+  elAbout.hidden = false;
+}
+
+function route(){
+  const hash = location.hash || "#/";
+  if (hash.startsWith("#/about")){
+    showAbout();
+    return;
+  }
+  if (hash.startsWith("#/post/")){
+    const id = decodeURIComponent(hash.split("/")[2] || "");
+    openPost(id);
+    return;
+  }
+  showHome();
+}
+
+q.addEventListener("input", () => {
+  state.query = q.value.trim();
+  renderList();
+});
+
+chips.forEach(chip => {
+  chip.addEventListener("click", () => {
+    chips.forEach(c => c.classList.remove("is-active"));
+    chip.classList.add("is-active");
+    state.filter = chip.getAttribute("data-filter");
+    renderList();
+  });
+});
+
+backBtn.addEventListener("click", () => {
+  location.hash = "#/";
+});
+
+window.addEventListener("hashchange", route);
+
+initTheme();
+renderList();
+route();
